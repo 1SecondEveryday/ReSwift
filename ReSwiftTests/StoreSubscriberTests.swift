@@ -49,7 +49,11 @@ class StoreSubscriberTests: XCTestCase {
 class TestFilteredSubscriber: StoreSubscriber {
     var receivedValue: Int?
 
-    func newState(state: Int?) {
+    func initialState(state: Int?) {
+        receivedValue = state
+    }
+
+    func newState(state: Int?, action: Action) {
         receivedValue = state
     }
 
@@ -62,7 +66,11 @@ class TestFilteredSubscriber: StoreSubscriber {
 class TestSelectiveSubscriber: StoreSubscriber {
     var receivedValue: (Int?, String?)
 
-    func newState(state: (Int?, String?)) {
+    func initialState(state: (Int?, String?)) {
+        receivedValue = state
+    }
+
+    func newState(state: (Int?, String?), action: Action) {
         receivedValue = state
     }
 }

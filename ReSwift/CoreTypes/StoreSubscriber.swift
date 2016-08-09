@@ -9,22 +9,34 @@
 import Foundation
 
 public protocol AnyStoreSubscriber: class {
-    func _newState(state: Any)
+    func _initialState(state: Any)
+    func _newState(state: Any, action: Action)
 }
 
 public protocol StoreSubscriber: AnyStoreSubscriber {
     associatedtype StoreSubscriberStateType
 
-    func newState(state: StoreSubscriberStateType)
+    func initialState(state: StoreSubscriberStateType)
+    func newState(state: StoreSubscriberStateType, action: Action)
 }
 
 extension StoreSubscriber {
-    public func _newState(state: Any) {
+    public func _initialState(state: Any) {
         if let typedState = state as? StoreSubscriberStateType {
             #if swift(>=3)
-                newState(state: typedState)
+                initialState(state: typedState)
             #else
-                newState(typedState)
+                initialState(typedState)
+            #endif
+        }
+    }
+
+    public func _newState(state: Any, action: Action) {
+        if let typedState = state as? StoreSubscriberStateType {
+            #if swift(>=3)
+                newState(state: typedState, action: action)
+            #else
+                newState(typedState, action: action)
             #endif
         }
     }

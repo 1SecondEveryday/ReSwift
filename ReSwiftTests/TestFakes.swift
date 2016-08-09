@@ -96,7 +96,11 @@ struct TestValueStringReducer: Reducer {
 class TestStoreSubscriber<T>: StoreSubscriber {
     var receivedStates: [T] = []
 
-    func newState(state: T) {
+    func initialState(state: T) {
+        receivedStates.append(state)
+    }
+
+    func newState(state: T, action: Action) {
         receivedStates.append(state)
     }
 }
@@ -108,7 +112,15 @@ class DispatchingSubscriber: StoreSubscriber {
         self.store = store
     }
 
-    func newState(state: TestAppState) {
+    func initialState(state: TestAppState) {
+        // Test if we've already dispatched this action to
+        // avoid endless recursion
+        if state.testValue != 5 {
+            self.store.dispatch(SetValueAction(5))
+        }
+    }
+
+    func newState(state: TestAppState, action: Action) {
         // Test if we've already dispatched this action to
         // avoid endless recursion
         if state.testValue != 5 {
@@ -125,7 +137,11 @@ class CallbackStoreSubscriber<T>: StoreSubscriber {
         self.handler = handler
     }
 
-    func newState(state: T) {
+    func initialState(state: T) {
+        handler(state)
+    }
+
+    func newState(state: T, action: Action) {
         handler(state)
     }
 }

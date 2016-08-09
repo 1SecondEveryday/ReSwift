@@ -22,20 +22,7 @@ public class Store<State: StateType>: StoreType {
     // swiftlint:disable todo
     // TODO: Setter should not be public; need way for store enhancers to modify appState anyway
 
-    /*private (set)*/ public var state: State! {
-        didSet {
-            subscriptions = subscriptions.filter { $0.subscriber != nil }
-            subscriptions.forEach {
-                // if a selector is available, subselect the relevant state
-                // otherwise pass the entire state to the subscriber
-                #if swift(>=3)
-                    $0.subscriber?._newState(state: $0.selector?(state) ?? state)
-                #else
-                    $0.subscriber?._newState($0.selector?(state) ?? state)
-                #endif
-            }
-        }
-    }
+    /*private (set)*/ public var state: State!
 
     public var dispatchFunction: DispatchFunction!
 
@@ -71,6 +58,19 @@ public class Store<State: StateType>: StoreType {
             self.state = state
         } else {
             dispatch(ReSwiftInit())
+        }
+    }
+
+    private func didUpdateStateWith(action action: Action) {
+        subscriptions = subscriptions.filter { $0.subscriber != nil }
+        subscriptions.forEach {
+            // if a selector is available, subselect the relevant state
+            // otherwise pass the entire state to the subscriber
+            #if swift(>=3)
+                $0.subscriber?._newState(state: $0.selector?(state) ?? state, action: action)
+            #else
+                $0.subscriber?._newState($0.selector?(state) ?? state, action: action)
+            #endif
         }
     }
 
@@ -110,7 +110,7 @@ public class Store<State: StateType>: StoreType {
             subscriptions.append(Subscription(subscriber: subscriber, selector: selector))
 
             if let state = self.state {
-                subscriber._newState(state: selector?(state) ?? state)
+                subscriber._initialState(state: selector?(state) ?? state)
             }
     }
     #else
@@ -122,7 +122,7 @@ public class Store<State: StateType>: StoreType {
             subscriptions.append(Subscription(subscriber: subscriber, selector: selector))
 
             if let state = self.state {
-                subscriber._newState(selector?(state) ?? state)
+                subscriber._initialState(selector?(state) ?? state)
             }
     }
     #endif
@@ -156,6 +156,8 @@ public class Store<State: StateType>: StoreType {
         isDispatching = false
 
         state = newState
+
+        didUpdateStateWith(action: action)
 
         return action
     }
