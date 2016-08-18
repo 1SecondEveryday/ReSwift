@@ -82,7 +82,6 @@ public class Store<State: StateType>: StoreType {
         #endif
 
         if contains {
-            print("Store subscriber is already added, ignoring.")
             return false
         }
 
